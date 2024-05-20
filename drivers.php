@@ -84,8 +84,19 @@ $result = $conn->query("SELECT * FROM Drivers");
         <input type="text" name="name" id="name" placeholder="Name" required>
         <input type="text" name="contactDetails" id="contactDetails" placeholder="Contact Details" required>
         <input type="text" name="licenseNumber" id="licenseNumber" placeholder="License Number" required>
-        <input type="text" name="workingShifts" id="workingShifts" placeholder="Working Shifts" required>
-        <input type="text" name="educationalQualifications" id="educationalQualifications" placeholder="Educational Qualifications" required>
+        <select name="workingShifts" id="workingShifts" required>
+            <option value="">Select Shift</option>
+            <option value="Morning">Morning</option>
+            <option value="Noon">Noon</option>
+            <option value="Evening">Evening</option>
+            <option value="Night">Night</option>
+        </select>
+        <br>
+        <select name="educationalQualifications" id="educationalQualifications" required>
+            <option value="">Select Educational Qualification</option>
+            <option value="SSC">SSC</option>
+            <option value="HSC">HSC</option>
+        </select>
         <input type="text" name="trainingDetails" id="trainingDetails" placeholder="Training Details" required>
         <input type="text" name="awards" id="awards" placeholder="Awards" required>
         <button type="submit">Add Driver</button>
