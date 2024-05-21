@@ -68,8 +68,20 @@ $result = $conn->query("SELECT * FROM Buses");
     <h1>Buses</h1>
     <form method="post">
         <input type="hidden" name="busNumber" id="busNumber">
+        <select name="busType" id="busType" onchange="updateModelOptions()" required>
+            <option value="">Select Bus Type</option>
+            <option value="Intra-City">Intra-City</option>
+            <option value="Inter-City">Inter-City</option>
+            <option value="Luxury">Luxury</option>
+            <option value="Local">Local</option>
+        </select>
+        <br>
+        <br>
+        <select name="model" id="model" onchange="setSeatingCapacity()" required>
+            <option value="">Select Model</option>
+        </select>
+        <br>
         <input type="text" name="seatingCapacity" id="seatingCapacity" placeholder="Seating Capacity" required>
-        <input type="text" name="model" id="model" placeholder="Model" required>
         <input type="text" name="driverID" id="driverID" placeholder="Driver ID" required>
         <button type="submit">Add Bus</button>
         <button type="submit" name="update">Update Bus</button>
@@ -101,6 +113,47 @@ $result = $conn->query("SELECT * FROM Buses");
     </table>
 
     <script>
+        function updateModelOptions() {
+            const busType = document.getElementById('busType').value;
+            const modelSelect = document.getElementById('model');
+            modelSelect.innerHTML = '<option value="">Select Model</option>'; // Reset options
+
+            const models = {
+                'Intra-City': ['Ashok Leyland Viking', 'Ashok Leyland Cheetah', 'Tata Marcopolo', 'Tata Starbus', 'Hino AK Series', 'Hino RM Series', 'Eicher Skyline Pro'],
+                'Inter-City': ['Volvo B9R', 'Volvo B11R', 'Scania K410', 'Scania Higer A30', 'Mercedes-Benz 0500R', 'Hyundai Universe', 'Isuzu Giga', 'Isuzu LT134', 'Daewoo BH120F'],
+                'Luxury': ['Volvo B8R', 'Scania Irizar i8', 'MAN Lions Coach'],
+                'Local': ['Ifad Ashok Leyland', 'Hino AK1J', 'Runner RT Series']
+            };
+
+            if (models[busType]) {
+                models[busType].forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.text = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+        }
+
+        function setSeatingCapacity() {
+            const busType = document.getElementById('busType').value;
+            const model = document.getElementById('model').value;
+            const seatingCapacityInput = document.getElementById('seatingCapacity');
+
+            if (busType === 'Inter-City') {
+                seatingCapacityInput.value = 60;
+            } else if (busType === 'Intra-City') {
+                seatingCapacityInput.value = 45;
+            } else if (busType === 'Luxury') {
+                // Set seating capacity for luxury models with a range
+                if (['Volvo B8R', 'Scania Irizar i8', 'MAN Lions Coach'].includes(model)) {
+                    seatingCapacityInput.value = Math.floor(Math.random() * 31) + 40; // random between 40 and 70
+                }
+            } else if (busType === 'Local') {
+                seatingCapacityInput.value = 30;
+            }
+        }
+
         function editBus(busNumber, seatingCapacity, model, driverID) {
             document.getElementById('busNumber').value = busNumber;
             document.getElementById('seatingCapacity').value = seatingCapacity;

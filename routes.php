@@ -1,6 +1,17 @@
 <?php
 include 'db.php';
 
+// Define distances between locations
+$distances = [
+    'Dhaka-Chittagong' => 248,
+    'Dhaka-Rajshahi' => 245,
+    'Dhaka-Khulna' => 290,
+    'Dhaka-Sylhet' => 238,
+    'Dhaka-Barisal' => 169,
+    'Dhaka-Rangpur' => 320,
+    // Add more distances as needed
+];
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['update'])) {
         $routeNumber = $_POST['routeNumber'];
@@ -68,9 +79,32 @@ $result = $conn->query("SELECT * FROM BusRoutes");
     <h1>Routes</h1>
     <form method="post">
         <input type="hidden" name="routeNumber" id="routeNumber">
-        <input type="text" name="startingPoint" id="startingPoint" placeholder="Starting Point" required>
-        <input type="text" name="destination" id="destination" placeholder="Destination" required>
-        <input type="text" name="distanceCovered" id="distanceCovered" placeholder="Distance Covered" required>
+        <select name="startingPoint" id="startingPoint" required onchange="calculateDistance()">
+            <option value="">Select Starting Point</option>
+            <option value="Dhaka">Dhaka</option>
+            <option value="Chittagong">Chittagong</option>
+            <option value="Rajshahi">Rajshahi</option>
+            <option value="Khulna">Khulna</option>
+            <option value="Sylhet">Sylhet</option>
+            <option value="Barisal">Barisal</option>
+            <option value="Rangpur">Rangpur</option>
+            <!-- Add more locations as needed -->
+        </select>
+        <br>
+        <br>
+        <select name="destination" id="destination" required onchange="calculateDistance()">
+            <option value="">Select Destination</option>
+            <option value="Dhaka">Dhaka</option>
+            <option value="Chittagong">Chittagong</option>
+            <option value="Rajshahi">Rajshahi</option>
+            <option value="Khulna">Khulna</option>
+            <option value="Sylhet">Sylhet</option>
+            <option value="Barisal">Barisal</option>
+            <option value="Rangpur">Rangpur</option>
+            <!-- Add more locations as needed -->
+        </select>
+        <br>
+        <input type="text" name="distanceCovered" id="distanceCovered" placeholder="Distance Covered" required readonly>
         <button type="submit">Add Route</button>
         <button type="submit" name="update">Update Route</button>
     </form>
@@ -101,14 +135,28 @@ $result = $conn->query("SELECT * FROM BusRoutes");
     </table>
 
     <script>
-        function editRoute(routeNumber, startingPoint, destination, distanceCovered) {
-            document.getElementById('routeNumber').value = routeNumber;
-            document.getElementById('startingPoint').value = startingPoint;
-            document.getElementById('destination').value = destination;
-            document.getElementById('distanceCovered').value = distanceCovered;
-        }
-    </script>
-</body>
+    const distances = <?php echo json_encode($distances); ?>;
+
+    function calculateDistance() {
+        const startingPoint = document.getElementById('startingPoint').value;
+        const destination = document.getElementById('destination').value;
+        const distanceCoveredInput = document.getElementById('distanceCovered');
+
+        const key1 = startingPoint + '-' + destination;
+        const key2 = destination + '-' + startingPoint;
+        const distance = distances[key1] || distances[key2] || '';
+
+        distanceCoveredInput.value = distance;
+    }
+
+    function editRoute(routeNumber, startingPoint, destination, distanceCovered) {
+        document.getElementById('routeNumber').value = routeNumber;
+        document.getElementById('startingPoint').value = startingPoint;
+        document.getElementById('destination').value = destination;
+        document.getElementById('distanceCovered').value = distanceCovered;
+    }
+</script>
+
 </html>
 
 <?php $conn->close(); ?>
