@@ -31,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $busNumber = $_POST['busNumber'];
 
         $sql = "INSERT INTO BusSchedules (RouteNumber, DepartureTime, ArrivalTime, BusNumber) 
-                VALUES ('$routeNumber', '$departureTime', '$arrivalTime', '$busNumber')";
+        VALUES ('$routeNumber', '$departureTime', '$arrivalTime', '$busNumber')";
         if ($conn->query($sql) === TRUE) {
             echo "New schedule created successfully";
         } else {

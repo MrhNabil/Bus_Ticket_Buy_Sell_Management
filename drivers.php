@@ -92,7 +92,6 @@ $result = $conn->query("SELECT * FROM Drivers");
             <option value="Night">Night</option>
         </select>
         <br>
-        <br>
         <select name="educationalQualifications" id="educationalQualifications" required>
             <option value="">Select Educational Qualification</option>
             <option value="SSC">SSC</option>

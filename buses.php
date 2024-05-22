@@ -2,40 +2,53 @@
 include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['update'])) {
-        $busNumber = $_POST['busNumber'];
-        $seatingCapacity = $_POST['seatingCapacity'];
-        $model = $_POST['model'];
-        $driverID = $_POST['driverID'];
+    $busNumber = isset($_POST['busNumber']) ? $_POST['busNumber'] : null;
+    $seatingCapacity = $_POST['seatingCapacity'];
+    $model = $_POST['model'];
+    $driverID = $_POST['driverID'];
 
-        $sql = "UPDATE Buses SET SeatingCapacity='$seatingCapacity', Model='$model', DriverID='$driverID' WHERE BusNumber='$busNumber'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Bus updated successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    } else if (isset($_POST['delete'])) {
-        $busNumber = $_POST['busNumber'];
+    // Check if DriverID exists
+    $driverCheck = $conn->prepare("SELECT * FROM drivers WHERE DriverID = ?");
+    $driverCheck->bind_param("i", $driverID);
+    $driverCheck->execute();
+    $driverCheckResult = $driverCheck->get_result();
 
-        $sql = "DELETE FROM Buses WHERE BusNumber='$busNumber'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Bus deleted successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+    if ($driverCheckResult->num_rows == 0) {
+        echo "Error: DriverID does not exist.";
     } else {
-        $seatingCapacity = $_POST['seatingCapacity'];
-        $model = $_POST['model'];
-        $driverID = $_POST['driverID'];
-
-        $sql = "INSERT INTO Buses (SeatingCapacity, Model, DriverID) 
-                VALUES ('$seatingCapacity', '$model', '$driverID')";
-        if ($conn->query($sql) === TRUE) {
-            echo "New bus created successfully";
+        if (isset($_POST['update']) && $busNumber) {
+            // Update existing bus
+            $sql = "UPDATE Buses SET SeatingCapacity=?, Model=?, DriverID=? WHERE BusNumber=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("isii", $seatingCapacity, $model, $driverID, $busNumber);
+            if ($stmt->execute() === TRUE) {
+                echo "Bus updated successfully";
+            } else {
+                echo "Error updating bus: " . $stmt->error;
+            }
+        } else if (isset($_POST['delete']) && $busNumber) {
+            // Delete bus
+            $sql = "DELETE FROM Buses WHERE BusNumber=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $busNumber);
+            if ($stmt->execute() === TRUE) {
+                echo "Bus deleted successfully";
+            } else {
+                echo "Error deleting bus: " . $stmt->error;
+            }
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            // Insert new bus
+            $sql = "INSERT INTO Buses (SeatingCapacity, Model, DriverID) VALUES (?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("isi", $seatingCapacity, $model, $driverID);
+            if ($stmt->execute() === TRUE) {
+                echo "New bus created successfully";
+            } else {
+                echo "Error inserting new bus: " . $stmt->error;
+            }
         }
     }
+    $driverCheck->close();
 }
 
 $result = $conn->query("SELECT * FROM Buses");
@@ -75,7 +88,6 @@ $result = $conn->query("SELECT * FROM Buses");
             <option value="Luxury">Luxury</option>
             <option value="Local">Local</option>
         </select>
-        <br>
         <br>
         <select name="model" id="model" onchange="setSeatingCapacity()" required>
             <option value="">Select Model</option>
@@ -164,4 +176,6 @@ $result = $conn->query("SELECT * FROM Buses");
 </body>
 </html>
 
-<?php $conn->close(); ?>
+<?php
+$conn->close();
+?>

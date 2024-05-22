@@ -13,40 +13,54 @@ $distances = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['update'])) {
-        $routeNumber = $_POST['routeNumber'];
-        $startingPoint = $_POST['startingPoint'];
-        $destination = $_POST['destination'];
-        $distanceCovered = $_POST['distanceCovered'];
+    $startingPoint = $_POST['startingPoint'];
+    $destination = $_POST['destination'];
+    $distanceCovered = $_POST['distanceCovered'];
+    $driverID = $_POST['driverID']; // Assuming you have a field for DriverID
 
-        $sql = "UPDATE BusRoutes SET StartingPoint='$startingPoint', Destination='$destination', DistanceCovered='$distanceCovered' WHERE RouteNumber='$routeNumber'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Route updated successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    } else if (isset($_POST['delete'])) {
-        $routeNumber = $_POST['routeNumber'];
+    // Check if DriverID exists
+    $driverCheck = $conn->prepare("SELECT * FROM drivers WHERE DriverID = ?");
+    $driverCheck->bind_param("i", $driverID);
+    $driverCheck->execute();
+    $driverCheckResult = $driverCheck->get_result();
 
-        $sql = "DELETE FROM BusRoutes WHERE RouteNumber='$routeNumber'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Route deleted successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+    if ($driverCheckResult->num_rows == 0) {
+        echo "Error: DriverID does not exist.";
     } else {
-        $startingPoint = $_POST['startingPoint'];
-        $destination = $_POST['destination'];
-        $distanceCovered = $_POST['distanceCovered'];
+        if (isset($_POST['update'])) {
+            $routeNumber = $_POST['routeNumber'];
 
-        $sql = "INSERT INTO BusRoutes (StartingPoint, Destination, DistanceCovered) 
-                VALUES ('$startingPoint', '$destination', '$distanceCovered')";
-        if ($conn->query($sql) === TRUE) {
-            echo "New route created successfully";
+            $sql = "UPDATE BusRoutes SET StartingPoint=?, Destination=?, DistanceCovered=?, DriverID=? WHERE RouteNumber=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssiii", $startingPoint, $destination, $distanceCovered, $driverID, $routeNumber);
+            if ($stmt->execute() === TRUE) {
+                echo "Route updated successfully";
+            } else {
+                echo "Error updating route: " . $stmt->error;
+            }
+        } else if (isset($_POST['delete'])) {
+            $routeNumber = $_POST['routeNumber'];
+
+            $sql = "DELETE FROM BusRoutes WHERE RouteNumber=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $routeNumber);
+            if ($stmt->execute() === TRUE) {
+                echo "Route deleted successfully";
+            } else {
+                echo "Error deleting route: " . $stmt->error;
+            }
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            $sql = "INSERT INTO BusRoutes (StartingPoint, Destination, DistanceCovered, DriverID) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("ssii", $startingPoint, $destination, $distanceCovered, $driverID);
+            if ($stmt->execute() === TRUE) {
+                echo "New route created successfully";
+            } else {
+                echo "Error inserting new route: " . $stmt->error;
+            }
         }
     }
+    $driverCheck->close();
 }
 
 $result = $conn->query("SELECT * FROM BusRoutes");
@@ -90,8 +104,6 @@ $result = $conn->query("SELECT * FROM BusRoutes");
             <option value="Rangpur">Rangpur</option>
             <!-- Add more locations as needed -->
         </select>
-        <br>
-        <br>
         <select name="destination" id="destination" required onchange="calculateDistance()">
             <option value="">Select Destination</option>
             <option value="Dhaka">Dhaka</option>
@@ -103,8 +115,16 @@ $result = $conn->query("SELECT * FROM BusRoutes");
             <option value="Rangpur">Rangpur</option>
             <!-- Add more locations as needed -->
         </select>
-        <br>
         <input type="text" name="distanceCovered" id="distanceCovered" placeholder="Distance Covered" required readonly>
+        <select name="driverID" id="driverID" required>
+            <option value="">Select Driver</option>
+            <?php
+            $drivers = $conn->query("SELECT * FROM drivers");
+            while ($driver = $drivers->fetch_assoc()) {
+                echo "<option value='{$driver['DriverID']}'>{$driver['DriverName']}</option>";
+            }
+            ?>
+        </select>
         <button type="submit">Add Route</button>
         <button type="submit" name="update">Update Route</button>
     </form>
@@ -115,6 +135,7 @@ $result = $conn->query("SELECT * FROM BusRoutes");
             <th>Starting Point</th>
             <th>Destination</th>
             <th>Distance Covered</th>
+            <th>Driver ID</th>
             <th>Actions</th>
         </tr>
         <?php while($row = $result->fetch_assoc()) { ?>
@@ -123,8 +144,9 @@ $result = $conn->query("SELECT * FROM BusRoutes");
             <td><?php echo $row['StartingPoint']; ?></td>
             <td><?php echo $row['Destination']; ?></td>
             <td><?php echo $row['DistanceCovered']; ?></td>
+            <td><?php echo $row['DriverID']; ?></td>
             <td>
-                <button onclick="editRoute(<?php echo $row['RouteNumber']; ?>, '<?php echo $row['StartingPoint']; ?>', '<?php echo $row['Destination']; ?>', '<?php echo $row['DistanceCovered']; ?>')">Edit</button>
+                <button onclick="editRoute(<?php echo $row['RouteNumber']; ?>, '<?php echo $row['StartingPoint']; ?>', '<?php echo $row['Destination']; ?>', '<?php echo $row['DistanceCovered']; ?>', '<?php echo $row['DriverID']; ?>')">Edit</button>
                 <form method="post" style="display:inline;">
                     <input type="hidden" name="routeNumber" value="<?php echo $row['RouteNumber']; ?>">
                     <button type="submit" name="delete">Delete</button>
@@ -135,28 +157,29 @@ $result = $conn->query("SELECT * FROM BusRoutes");
     </table>
 
     <script>
-    const distances = <?php echo json_encode($distances); ?>;
+        const distances = <?php echo json_encode($distances); ?>;
 
-    function calculateDistance() {
-        const startingPoint = document.getElementById('startingPoint').value;
-        const destination = document.getElementById('destination').value;
-        const distanceCoveredInput = document.getElementById('distanceCovered');
+        function calculateDistance() {
+            const startingPoint = document.getElementById('startingPoint').value;
+            const destination = document.getElementById('destination').value;
+            const distanceCoveredInput = document.getElementById('distanceCovered');
 
-        const key1 = startingPoint + '-' + destination;
-        const key2 = destination + '-' + startingPoint;
-        const distance = distances[key1] || distances[key2] || '';
+            const key1 = startingPoint + '-' + destination;
+            const key2 = destination + '-' + startingPoint;
+            const distance = distances[key1] || distances[key2] || 'Distance not found';
 
-        distanceCoveredInput.value = distance;
-    }
+            distanceCoveredInput.value = distance;
+        }
 
-    function editRoute(routeNumber, startingPoint, destination, distanceCovered) {
-        document.getElementById('routeNumber').value = routeNumber;
-        document.getElementById('startingPoint').value = startingPoint;
-        document.getElementById('destination').value = destination;
-        document.getElementById('distanceCovered').value = distanceCovered;
-    }
-</script>
-
+        function editRoute(routeNumber, startingPoint, destination, distanceCovered, driverID) {
+            document.getElementById('routeNumber').value = routeNumber;
+            document.getElementById('startingPoint').value = startingPoint;
+            document.getElementById('destination').value = destination;
+            document.getElementById('distanceCovered').value = distanceCovered;
+            document.getElementById('driverID').value = driverID;
+        }
+    </script>
+</body>
 </html>
 
 <?php $conn->close(); ?>
