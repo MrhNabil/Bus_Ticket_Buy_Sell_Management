@@ -22,6 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } else {
             echo "Error: " . $sql . "<br>" . $conn->error;
         }
+
+        // Check if all passengers are deleted and reset AUTO_INCREMENT
+        $result = $conn->query("SELECT COUNT(*) as count FROM Passengers");
+        $row = $result->fetch_assoc();
+        if ($row['count'] == 0) {
+            $conn->query("ALTER TABLE Passengers AUTO_INCREMENT = 1");
+        }
     } else {
         $name = $_POST['name'];
         $contactInformation = $_POST['contactInformation'];

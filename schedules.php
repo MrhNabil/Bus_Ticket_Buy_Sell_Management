@@ -2,42 +2,61 @@
 include 'db.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['update'])) {
-        $scheduleID = $_POST['scheduleID'];
-        $routeNumber = $_POST['routeNumber'];
-        $departureTime = $_POST['departureTime'];
-        $arrivalTime = $_POST['arrivalTime'];
-        $busNumber = $_POST['busNumber'];
-
-        $sql = "UPDATE BusSchedules SET RouteNumber='$routeNumber', DepartureTime='$departureTime', ArrivalTime='$arrivalTime', BusNumber='$busNumber' WHERE ScheduleID='$scheduleID'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Schedule updated successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
-    } else if (isset($_POST['delete'])) {
-        $scheduleID = $_POST['scheduleID'];
-
-        $sql = "DELETE FROM BusSchedules WHERE ScheduleID='$scheduleID'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Schedule deleted successfully";
-        } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
-        }
+    $routeNumber = $_POST['routeNumber'];
+    $departureTime = $_POST['departureTime'];
+    $arrivalTime = $_POST['arrivalTime'];
+    $busNumber = $_POST['busNumber'];
+    
+    // Check if RouteNumber exists
+    $routeCheck = $conn->prepare("SELECT * FROM BusRoutes WHERE RouteNumber = ?");
+    $routeCheck->bind_param("i", $routeNumber);
+    $routeCheck->execute();
+    $routeCheckResult = $routeCheck->get_result();
+    
+    // Check if BusNumber exists
+    $busCheck = $conn->prepare("SELECT * FROM Buses WHERE BusNumber = ?");
+    $busCheck->bind_param("i", $busNumber);
+    $busCheck->execute();
+    $busCheckResult = $busCheck->get_result();
+    
+    if ($routeCheckResult->num_rows == 0) {
+        echo "Error: RouteNumber does not exist.";
+    } elseif ($busCheckResult->num_rows == 0) {
+        echo "Error: BusNumber does not exist.";
     } else {
-        $routeNumber = $_POST['routeNumber'];
-        $departureTime = $_POST['departureTime'];
-        $arrivalTime = $_POST['arrivalTime'];
-        $busNumber = $_POST['busNumber'];
-
-        $sql = "INSERT INTO BusSchedules (RouteNumber, DepartureTime, ArrivalTime, BusNumber) 
-        VALUES ('$routeNumber', '$departureTime', '$arrivalTime', '$busNumber')";
-        if ($conn->query($sql) === TRUE) {
-            echo "New schedule created successfully";
+        if (isset($_POST['update'])) {
+            $scheduleID = $_POST['scheduleID'];
+            $sql = "UPDATE BusSchedules SET RouteNumber=?, DepartureTime=?, ArrivalTime=?, BusNumber=? WHERE ScheduleID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("issii", $routeNumber, $departureTime, $arrivalTime, $busNumber, $scheduleID);
+            if ($stmt->execute() === TRUE) {
+                echo "Schedule updated successfully";
+            } else {
+                echo "Error updating schedule: " . $stmt->error;
+            }
+        } elseif (isset($_POST['delete'])) {
+            $scheduleID = $_POST['scheduleID'];
+            $sql = "DELETE FROM BusSchedules WHERE ScheduleID=?";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("i", $scheduleID);
+            if ($stmt->execute() === TRUE) {
+                echo "Schedule deleted successfully";
+            } else {
+                echo "Error deleting schedule: " . $stmt->error;
+            }
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            $sql = "INSERT INTO BusSchedules (RouteNumber, DepartureTime, ArrivalTime, BusNumber) VALUES (?, ?, ?, ?)";
+            $stmt = $conn->prepare($sql);
+            $stmt->bind_param("issi", $routeNumber, $departureTime, $arrivalTime, $busNumber);
+            if ($stmt->execute() === TRUE) {
+                echo "New schedule created successfully";
+            } else {
+                echo "Error inserting new schedule: " . $stmt->error;
+            }
         }
     }
+    $routeCheck->close();
+    $busCheck->close();
 }
 
 $result = $conn->query("SELECT * FROM BusSchedules");
