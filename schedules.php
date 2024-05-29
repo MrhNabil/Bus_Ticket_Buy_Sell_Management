@@ -91,7 +91,9 @@ $result = $conn->query("SELECT * FROM BusSchedules");
     <form method="post">
         <input type="hidden" name="scheduleID" id="scheduleID">
         <input type="text" name="routeNumber" id="routeNumber" placeholder="Route Number" required>
+        <label for="departureTime">Departure Time:</label>
         <input type="datetime-local" name="departureTime" id="departureTime" placeholder="Departure Time" required>
+        <label for="arrivalTime">Arrival Time:</label>
         <input type="datetime-local" name="arrivalTime" id="arrivalTime" placeholder="Arrival Time" required>
         <input type="text" name="busNumber" id="busNumber" placeholder="Bus Number" required>
         <button type="submit">Add Schedule</button>

@@ -50,7 +50,9 @@ $result = $conn->query("SELECT * FROM Bookings");
         <input type="text" name="busNumber" placeholder="Bus Number" required>
         <input type="text" name="seat" placeholder="Seat" required>
         <input type="text" name="bookedBy" placeholder="Booked By (Passenger ID)" required>
+        <label for="bookingTime">Booking Time:</label>
         <input type="datetime-local" name="bookingTime" placeholder="Booking Time" required>
+        <label for="expiryTime">Expiry Time:</label>
         <input type="datetime-local" name="expiryTime" placeholder="Expiry Time" required>
         <button type="submit">Add Booking</button>
     </form>

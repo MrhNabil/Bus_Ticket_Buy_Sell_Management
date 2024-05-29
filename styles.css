@@ -6,7 +6,7 @@ body {
 }
 
 header {
-    background-color: #343a40;
+    background-color: #5d7083;
     color: #ffffff;
     padding: 10px 0;
     text-align: center;
@@ -31,7 +31,7 @@ header nav ul li a {
 h1 {
     text-align: center;
     margin-top: 20px;
-    color: #343a40;
+    text-decoration-color: #f3f3f3;
 }
 
 form {

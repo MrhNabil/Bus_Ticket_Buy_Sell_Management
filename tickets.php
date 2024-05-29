@@ -80,6 +80,7 @@ $result = $conn->query("SELECT * FROM Tickets");
     <form method="post">
         <input type="hidden" name="ticketNumber" id="ticketNumber">
         <input type="text" name="passengerID" id="passengerID" placeholder="Passenger ID" required>
+        <label for="dateofTravel">Date of Travel:</label>
         <input type="date" name="dateOfTravel" id="dateOfTravel" placeholder="Date of Travel" required>
         <input type="text" name="seat" id="seat" placeholder="Seat" required>
         <input type="text" name="price" id="price" placeholder="Price" required>
