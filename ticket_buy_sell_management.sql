@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 19, 2024 at 10:08 PM
+-- Generation Time: May 29, 2024 at 04:47 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -74,15 +74,18 @@ CREATE TABLE `busroutes` (
   `RouteNumber` int(11) NOT NULL,
   `StartingPoint` varchar(255) DEFAULT NULL,
   `Destination` varchar(255) DEFAULT NULL,
-  `DistanceCovered` float DEFAULT NULL
+  `DistanceCovered` float DEFAULT NULL,
+  `DriverID` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `busroutes`
 --
 
-INSERT INTO `busroutes` (`RouteNumber`, `StartingPoint`, `Destination`, `DistanceCovered`) VALUES
-(1, 'Dhaka', 'Chattogram', 400);
+INSERT INTO `busroutes` (`RouteNumber`, `StartingPoint`, `Destination`, `DistanceCovered`, `DriverID`) VALUES
+(1, 'Dhaka', 'Chattogram', 400, NULL),
+(2, 'Dhaka', 'Chittagong', 248, 1),
+(3, 'Dhaka', 'Chittagong', 248, 1);
 
 -- --------------------------------------------------------
 
@@ -97,6 +100,13 @@ CREATE TABLE `busschedules` (
   `ArrivalTime` datetime DEFAULT NULL,
   `BusNumber` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `busschedules`
+--
+
+INSERT INTO `busschedules` (`ScheduleID`, `RouteNumber`, `DepartureTime`, `ArrivalTime`, `BusNumber`) VALUES
+(1, 2, '2024-05-01 08:39:00', '2024-05-01 13:40:00', 1);
 
 -- --------------------------------------------------------
 
@@ -172,7 +182,8 @@ CREATE TABLE `tickets` (
 --
 
 INSERT INTO `tickets` (`TicketNumber`, `PassengerID`, `DateOfTravel`, `Seat`, `Price`) VALUES
-(1, 1, '2222-02-02', 2, 99.00);
+(1, 1, '2222-02-02', 2, 99.00),
+(2, 1, '2024-05-01', 2, 99.00);
 
 -- --------------------------------------------------------
 
@@ -308,13 +319,13 @@ ALTER TABLE `buses`
 -- AUTO_INCREMENT for table `busroutes`
 --
 ALTER TABLE `busroutes`
-  MODIFY `RouteNumber` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `RouteNumber` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `busschedules`
 --
 ALTER TABLE `busschedules`
-  MODIFY `ScheduleID` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `ScheduleID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `drivers`
@@ -338,7 +349,7 @@ ALTER TABLE `passengers`
 -- AUTO_INCREMENT for table `tickets`
 --
 ALTER TABLE `tickets`
-  MODIFY `TicketNumber` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `TicketNumber` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `travelcards`

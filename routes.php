@@ -13,54 +13,58 @@ $distances = [
 ];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $startingPoint = $_POST['startingPoint'];
-    $destination = $_POST['destination'];
-    $distanceCovered = $_POST['distanceCovered'];
-    $driverID = $_POST['driverID']; // Assuming you have a field for DriverID
+    $startingPoint = isset($_POST['startingPoint']) ? $_POST['startingPoint'] : null;
+    $destination = isset($_POST['destination']) ? $_POST['destination'] : null;
+    $distanceCovered = isset($_POST['distanceCovered']) ? $_POST['distanceCovered'] : null;
+    $driverID = isset($_POST['driverID']) ? $_POST['driverID'] : null;
 
-    // Check if DriverID exists
-    $driverCheck = $conn->prepare("SELECT * FROM drivers WHERE DriverID = ?");
-    $driverCheck->bind_param("i", $driverID);
-    $driverCheck->execute();
-    $driverCheckResult = $driverCheck->get_result();
+    if ($startingPoint && $destination && $distanceCovered && $driverID) {
+        // Check if DriverID exists
+        $driverCheck = $conn->prepare("SELECT * FROM drivers WHERE DriverID = ?");
+        $driverCheck->bind_param("i", $driverID);
+        $driverCheck->execute();
+        $driverCheckResult = $driverCheck->get_result();
 
-    if ($driverCheckResult->num_rows == 0) {
-        echo "Error: DriverID does not exist.";
-    } else {
-        if (isset($_POST['update'])) {
-            $routeNumber = $_POST['routeNumber'];
-
-            $sql = "UPDATE BusRoutes SET StartingPoint=?, Destination=?, DistanceCovered=?, DriverID=? WHERE RouteNumber=?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssiii", $startingPoint, $destination, $distanceCovered, $driverID, $routeNumber);
-            if ($stmt->execute() === TRUE) {
-                echo "Route updated successfully";
-            } else {
-                echo "Error updating route: " . $stmt->error;
-            }
-        } else if (isset($_POST['delete'])) {
-            $routeNumber = $_POST['routeNumber'];
-
-            $sql = "DELETE FROM BusRoutes WHERE RouteNumber=?";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("i", $routeNumber);
-            if ($stmt->execute() === TRUE) {
-                echo "Route deleted successfully";
-            } else {
-                echo "Error deleting route: " . $stmt->error;
-            }
+        if ($driverCheckResult->num_rows == 0) {
+            echo "Error: DriverID does not exist.";
         } else {
-            $sql = "INSERT INTO BusRoutes (StartingPoint, Destination, DistanceCovered, DriverID) VALUES (?, ?, ?, ?)";
-            $stmt = $conn->prepare($sql);
-            $stmt->bind_param("ssii", $startingPoint, $destination, $distanceCovered, $driverID);
-            if ($stmt->execute() === TRUE) {
-                echo "New route created successfully";
+            if (isset($_POST['update'])) {
+                $routeNumber = $_POST['routeNumber'];
+
+                $sql = "UPDATE BusRoutes SET StartingPoint=?, Destination=?, DistanceCovered=?, DriverID=? WHERE RouteNumber=?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ssiii", $startingPoint, $destination, $distanceCovered, $driverID, $routeNumber);
+                if ($stmt->execute() === TRUE) {
+                    echo "Route updated successfully";
+                } else {
+                    echo "Error updating route: " . $stmt->error;
+                }
+            } else if (isset($_POST['delete'])) {
+                $routeNumber = $_POST['routeNumber'];
+
+                $sql = "DELETE FROM BusRoutes WHERE RouteNumber=?";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("i", $routeNumber);
+                if ($stmt->execute() === TRUE) {
+                    echo "Route deleted successfully";
+                } else {
+                    echo "Error deleting route: " . $stmt->error;
+                }
             } else {
-                echo "Error inserting new route: " . $stmt->error;
+                $sql = "INSERT INTO BusRoutes (StartingPoint, Destination, DistanceCovered, DriverID) VALUES (?, ?, ?, ?)";
+                $stmt = $conn->prepare($sql);
+                $stmt->bind_param("ssii", $startingPoint, $destination, $distanceCovered, $driverID);
+                if ($stmt->execute() === TRUE) {
+                    echo "New route created successfully";
+                } else {
+                    echo "Error inserting new route: " . $stmt->error;
+                }
             }
         }
+        $driverCheck->close();
+    } else {
+        echo "Error: All fields are required.";
     }
-    $driverCheck->close();
 }
 
 $result = $conn->query("SELECT * FROM BusRoutes");
@@ -78,15 +82,16 @@ $result = $conn->query("SELECT * FROM BusRoutes");
     <header>
         <nav>
             <ul>
-                <li><a href="index.php">Home</a></li>
                 <li><a href="passengers.php">Passengers</a></li>
                 <li><a href="drivers.php">Drivers</a></li>
                 <li><a href="buses.php">Buses</a></li>
+                <li><a href="routes.php">Routes</a></li>
                 <li><a href="schedules.php">Schedules</a></li>
                 <li><a href="tickets.php">Tickets</a></li>
                 <li><a href="bookings.php">Bookings</a></li>
                 <li><a href="driver_training.php">Driver Training</a></li>
                 <li><a href="travel_cards.php">Travel Cards</a></li>
+                <li><a href="logout.php">Logout</a></li>
             </ul>
         </nav>
     </header>

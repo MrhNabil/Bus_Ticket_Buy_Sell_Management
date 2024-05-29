@@ -26,12 +26,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else if (isset($_POST['delete'])) {
         $driverID = $_POST['driverID'];
 
-        $sql = "DELETE FROM Drivers WHERE DriverID='$driverID'";
-        if ($conn->query($sql) === TRUE) {
-            echo "Driver deleted successfully";
+        // Check if the driver is assigned to any bus
+        $checkBus = $conn->prepare("SELECT * FROM Buses WHERE DriverID = ?");
+        $checkBus->bind_param("i", $driverID);
+        $checkBus->execute();
+        $busResult = $checkBus->get_result();
+
+        if ($busResult->num_rows > 0) {
+            echo "Error: Cannot delete driver assigned to a bus.";
         } else {
-            echo "Error: " . $sql . "<br>" . $conn->error;
+            $sql = "DELETE FROM Drivers WHERE DriverID='$driverID'";
+            if ($conn->query($sql) === TRUE) {
+                echo "Driver deleted successfully";
+            } else {
+                echo "Error: " . $sql . "<br>" . $conn->error;
+            }
         }
+        $checkBus->close();
     } else {
         $name = $_POST['name'];
         $contactDetails = $_POST['contactDetails'];
@@ -66,8 +77,8 @@ $result = $conn->query("SELECT * FROM Drivers");
     <header>
         <nav>
             <ul>
-                <li><a href="index.php">Home</a></li>
                 <li><a href="passengers.php">Passengers</a></li>
+                <li><a href="drivers.php">Drivers</a></li>
                 <li><a href="buses.php">Buses</a></li>
                 <li><a href="routes.php">Routes</a></li>
                 <li><a href="schedules.php">Schedules</a></li>
@@ -75,6 +86,7 @@ $result = $conn->query("SELECT * FROM Drivers");
                 <li><a href="bookings.php">Bookings</a></li>
                 <li><a href="driver_training.php">Driver Training</a></li>
                 <li><a href="travel_cards.php">Travel Cards</a></li>
+                <li><a href="logout.php">Logout</a></li>
             </ul>
         </nav>
     </header>

@@ -63,15 +63,16 @@ $result = $conn->query("SELECT * FROM Tickets");
     <header>
         <nav>
             <ul>
-                <li><a href="index.php">Home</a></li>
-                <li><a href="passengers.php">Passengers</a></li>
-                <li><a href="drivers.php">Drivers</a></li>
-                <li><a href="buses.php">Buses</a></li>
-                <li><a href="routes.php">Routes</a></li>
-                <li><a href="schedules.php">Schedules</a></li>
-                <li><a href="bookings.php">Bookings</a></li>
-                <li><a href="driver_training.php">Driver Training</a></li>
-                <li><a href="travel_cards.php">Travel Cards</a></li>
+            <li><a href="passengers.php">Passengers</a></li>
+                    <li><a href="drivers.php">Drivers</a></li>
+                    <li><a href="buses.php">Buses</a></li>
+                    <li><a href="routes.php">Routes</a></li>
+                    <li><a href="schedules.php">Schedules</a></li>
+                    <li><a href="tickets.php">Tickets</a></li>
+                    <li><a href="bookings.php">Bookings</a></li>
+                    <li><a href="driver_training.php">Driver Training</a></li>
+                    <li><a href="travel_cards.php">Travel Cards</a></li>
+                    <li><a href="logout.php">Logout</a></li>
             </ul>
         </nav> 
     </header>
